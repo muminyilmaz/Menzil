@@ -1,9 +1,11 @@
 import { useTema } from '@/context/ThemeContext';
+import { useDil } from '@/context/LangContext';
 import * as Location from 'expo-location';
 import { Magnetometer } from 'expo-sensors';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Polygon, Text as SvgText, TextPath, Path, Defs, G } from 'react-native-svg';
+import { Animated, StyleSheet, Text, View, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle, Line, Polygon, Text as SvgText, TextPath, Path, Defs, Rect, G } from 'react-native-svg';
 
 function kiblaAcisiniHesapla(lat, lon) {
   const kiblaLat = 21.4225 * Math.PI / 180;
@@ -19,6 +21,7 @@ function kiblaAcisiniHesapla(lat, lon) {
 
 export default function KiblaScreen() {
   const { t } = useTema();
+  const { d } = useDil();
   const [kiblaAcisi, setKiblaAcisi] = useState(0);
   const [pusulaAcisi, setPusulaAcisi] = useState(0);
   const [konum, setKonum] = useState({ lat: 0, lon: 0 });
@@ -27,10 +30,10 @@ export default function KiblaScreen() {
   const insanAnim = useRef(new Animated.Value(0)).current;
   const kadranAngle = useRef(0);
   const insanAngle = useRef(0);
-  const size = 340;
+  const size = 320;
   const cx = size / 2;
   const cy = size / 2;
-  const r = 118;
+  const r = 110;
   const yaziR = r + 22;
 
   useEffect(() => {
@@ -84,116 +87,91 @@ export default function KiblaScreen() {
     { derece: 315, label: 'KB' },
   ];
 
-  const kabeY = cy - r - 34;
+  const daireselYaziPath = `M ${cx - yaziR} ${cy} A ${yaziR} ${yaziR} 0 1 1 ${cx + yaziR} ${cy}`;
+  const daireselYaziPath2 = `M ${cx + yaziR} ${cy} A ${yaziR} ${yaziR} 0 1 1 ${cx - yaziR} ${cy}`;
+  const metin = 'الله ✦ '.repeat(8);
+
+  const kabeY = cy - r - 36;
   const okBasY = cy - 30;
   const okUcY = cy - r + 8;
 
-  // Dairesel yazı için path
-  const daireselYaziPath = `M ${cx - yaziR} ${cy} A ${yaziR} ${yaziR} 0 1 1 ${cx + yaziR} ${cy}`;
-  const daireselYaziPath2 = `M ${cx + yaziR} ${cy} A ${yaziR} ${yaziR} 0 1 1 ${cx - yaziR} ${cy}`;
-  const tekrar = 'الله ✦ ';
-  const metin = tekrar.repeat(8);
-
   if (yukleniyor) return (
-    <View style={[styles.container, { backgroundColor: t.arka }]}>
-      <Text style={[styles.yukleniyorText, { color: t.altBaslik }]}>📍 Konum alınıyor...</Text>
-    </View>
+    <LinearGradient
+      colors={[t.arka, t.aktifKart, t.arka]}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <Text style={[styles.yukleniyorText, { color: t.altBaslik }]}>📍 {d.yukleniyor}</Text>
+    </LinearGradient>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: t.arka }]}>
-      <Text style={[styles.baslik, { color: t.baslik }]}>Kıble Yönü</Text>
+    <LinearGradient
+      colors={[t.arka, t.aktifKart, t.arka]}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <Text style={[styles.baslik, { color: t.baslik, position: 'absolute', top: 60 }]}>{d.kibla}</Text>
 
       <View style={{ width: size, height: size }}>
-
-        {/* Sabit dairesel Allah yazısı */}
         <Svg width={size} height={size} style={{ position: 'absolute' }}>
           <Defs>
             <Path id="ustYazi" d={daireselYaziPath} />
             <Path id="altYazi" d={daireselYaziPath2} />
           </Defs>
-          {/* Dış dekoratif çember çizgisi */}
           <Circle cx={cx} cy={cy} r={yaziR + 8} stroke={t.baslik} strokeWidth={0.3} strokeOpacity={0.15} fill="none" />
           <Circle cx={cx} cy={cy} r={yaziR - 8} stroke={t.baslik} strokeWidth={0.3} strokeOpacity={0.15} fill="none" />
-          {/* Dairesel yazı */}
           <SvgText fontSize={11} fill={t.baslik} fillOpacity={0.18} fontWeight="bold">
             <TextPath href="#ustYazi">{metin}</TextPath>
           </SvgText>
           <SvgText fontSize={11} fill={t.baslik} fillOpacity={0.18} fontWeight="bold">
             <TextPath href="#altYazi">{metin}</TextPath>
           </SvgText>
-          {/* Köşe süsleme noktaları */}
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((d) => {
-            const rad = (d - 90) * Math.PI / 180;
+          {[0,45,90,135,180,225,270,315].map((deg) => {
+            const rad = (deg - 90) * Math.PI / 180;
             const px = cx + (yaziR + 8) * Math.cos(rad);
             const py = cy + (yaziR + 8) * Math.sin(rad);
-            return <Circle key={d} cx={px} cy={py} r={1.5} fill={t.baslik} fillOpacity={0.25} />;
+            return <Circle key={deg} cx={px} cy={py} r={1.5} fill={t.baslik} fillOpacity={0.25} />;
           })}
         </Svg>
 
-        {/* Dönen kadran */}
         <Animated.View style={[{ position: 'absolute', width: size, height: size }, { transform: [{ rotate: kadranRotate }] }]}>
           <Svg width={size} height={size}>
             <Circle cx={cx} cy={cy} r={r} stroke={t.baslik} strokeWidth={1.5} fill={t.kart} />
             <Circle cx={cx} cy={cy} r={r - 16} stroke={t.aktifBorder} strokeWidth={0.5} fill="none" />
-
-            {tiklar.map((d) => {
-              const rad = (d - 90) * Math.PI / 180;
-              const buyuk = d % 90 === 0;
-              const orta = d % 45 === 0;
-              const kucukOrta = d % 15 === 0;
-              const uzunluk = buyuk ? 16 : orta ? 11 : kucukOrta ? 7 : 4;
+            {tiklar.map((deg) => {
+              const rad = (deg - 90) * Math.PI / 180;
+              const buyuk = deg % 90 === 0;
+              const orta = deg % 45 === 0;
+              const kucukOrta = deg % 15 === 0;
+              const uzunluk = buyuk ? 14 : orta ? 9 : kucukOrta ? 6 : 3;
               const x1 = cx + (r - uzunluk) * Math.cos(rad);
               const y1 = cy + (r - uzunluk) * Math.sin(rad);
               const x2 = cx + r * Math.cos(rad);
               const y2 = cy + r * Math.sin(rad);
-              return (
-                <Line key={d} x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke={buyuk ? t.baslik : orta ? t.vakitAd : t.altBaslik}
-                  strokeWidth={buyuk ? 2.5 : orta ? 1.5 : 0.8} />
-              );
+              return <Line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke={buyuk ? t.baslik : orta ? t.vakitAd : t.altBaslik} strokeWidth={buyuk ? 2 : 1} />;
             })}
-
-            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((d) => {
-              if (d % 45 === 0) return null;
-              const rad = (d - 90) * Math.PI / 180;
-              const tx = cx + (r - 28) * Math.cos(rad);
-              const ty = cy + (r - 28) * Math.sin(rad) + 4;
-              return (
-                <SvgText key={'deg' + d} x={tx} y={ty} textAnchor="middle" fill={t.altBaslik} fontSize={9}>
-                  {d}
-                </SvgText>
-              );
-            })}
-
             {yonler.map(({ derece, label }) => {
               const rad = (derece - 90) * Math.PI / 180;
               const buyukYon = derece % 90 === 0;
               const tx = cx + (r - (buyukYon ? 24 : 28)) * Math.cos(rad);
               const ty = cy + (r - (buyukYon ? 24 : 28)) * Math.sin(rad) + 5;
-              return (
-                <SvgText key={derece} x={tx} y={ty} textAnchor="middle"
-                  fill={derece === 0 ? '#FF375F' : t.baslik}
-                  fontSize={buyukYon ? 13 : 9} fontWeight="bold">
-                  {label}
-                </SvgText>
-              );
+              return <SvgText key={derece} x={tx} y={ty} textAnchor="middle" fill={derece === 0 ? '#FF375F' : t.baslik} fontSize={buyukYon ? 13 : 9} fontWeight="bold">{label}</SvgText>;
             })}
           </Svg>
         </Animated.View>
 
-        {/* Dönen insan + ok + kabe */}
         <Animated.View style={[{ position: 'absolute', width: size, height: size }, { transform: [{ rotate: insanRotate }] }]}>
           <Svg width={size} height={size}>
             <SvgText x={cx} y={kabeY + 28} textAnchor="middle" fontSize={40}>🕋</SvgText>
-            <Line x1={cx} y1={okBasY} x2={cx} y2={okUcY}
-              stroke={t.baslik} strokeWidth={2.5} strokeLinecap="round" />
-            <Polygon
-              points={`${cx},${okUcY} ${cx - 6},${okUcY + 12} ${cx + 6},${okUcY + 12}`}
-              fill={t.baslik} />
-            <SvgText x={cx} y={cy + 24} textAnchor="middle" fontSize={52}>🧎</SvgText>
           </Svg>
+          <Image source={require("../../assets/namazicon.png")} style={{ position: "absolute", width: 100, height: 140, top: cy - 70, left: cx - 50, transform: [{rotate: "180deg"}] }} resizeMode="contain" />
+            
         </Animated.View>
+
+
 
       </View>
 
@@ -201,21 +179,21 @@ export default function KiblaScreen() {
         <View style={styles.bilgiRow}>
           <View style={styles.bilgiItem}>
             <Text style={[styles.bilgiDeger, { color: t.baslik }]}>{Math.round(kiblaAcisi)}°</Text>
-            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>Kıble Açısı</Text>
+            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>{d.kiblaAcisi}</Text>
           </View>
           <View style={[styles.bilgiAyrac, { backgroundColor: t.aktifBorder }]} />
           <View style={styles.bilgiItem}>
             <Text style={[styles.bilgiDeger, { color: t.baslik }]}>{konum.lat.toFixed(3)}</Text>
-            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>Enlem</Text>
+            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>{d.enlem}</Text>
           </View>
           <View style={[styles.bilgiAyrac, { backgroundColor: t.aktifBorder }]} />
           <View style={styles.bilgiItem}>
             <Text style={[styles.bilgiDeger, { color: t.baslik }]}>{konum.lon.toFixed(3)}</Text>
-            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>Boylam</Text>
+            <Text style={[styles.bilgiLabel, { color: t.altBaslik }]}>{d.boylam}</Text>
           </View>
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
