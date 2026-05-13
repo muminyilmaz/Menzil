@@ -59,7 +59,7 @@ export default function KiblaScreen() {
     })();
     sub = Magnetometer.addListener((data) => {
       let angle = (Math.atan2(data.y, data.x) * 180) / Math.PI;
-      setPusulaAcisi((angle + 360) % 360);
+      setPusulaAcisi((angle + 360 + 270) % 360);
     });
     Magnetometer.setUpdateInterval(100);
     return () => sub && sub.remove();

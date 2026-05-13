@@ -12,6 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.aykanyilmaz.menzil",
       "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Menzil uses your location to calculate accurate prayer times and Qibla direction for your current city. Your location is never stored or shared.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -23,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.aykanyilmaz.menzil"
     },
     "web": {
       "output": "static",
